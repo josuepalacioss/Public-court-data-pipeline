@@ -14,6 +14,7 @@ completeness indicators. This domain is motivated by the need for scalable infra
 to support legal research and analysis of judicial activity using large public datasets.
 
 
+
 Problem Statement
 Public court data exists on a large scale but is difficult to analyze efficiently due to the sheer
 volume, heterogeneity, and different access constraints. Federal and state court datasets are
