@@ -1,5 +1,8 @@
 # CS4265_Josue_Palacios_M1
 
+**Big Data Pipeline for Public Court Document Analytics**
+
+
 Project Overview
 -------------------------------
 Domain: Public court data analytics
@@ -55,3 +58,8 @@ Out of Scope
 • Natural language processing, machine learning, or data mining.
 • Legal interpretation or reasoning over court opinions.
 • Real time or streaming data ingestion.
+
+Dataset Source
+-------------------------------------------------------
+Harvard's Caselaw Access Project: https://case.law/caselaw/?reporter=ga
+CourtListener: https://www.courtlistener.com/help/api/
