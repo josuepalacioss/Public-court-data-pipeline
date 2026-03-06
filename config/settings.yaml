@@ -1,0 +1,29 @@
+courtlistener:
+  base_url: "https://www.courtlistener.com/api/rest/v4"
+  courts:
+    - "scotus"
+    - "ca1"
+    - "ca9"
+    - "dcd"
+    - "nysd"
+    - "cacd"
+  page_size: 100
+  max_pages: 10
+  date_after: "2020-01-01"
+  date_before: "2024-12-31"
+
+caselaw_access_project:
+  jurisdiction: "ga"
+  bulk_data_dir: "data/raw/cap"
+
+storage:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  partition_cols:
+    - "source"
+    - "year"
+    - "month"
+
+logging:
+  level: "INFO"
+  log_file: "data/pipeline.log"
