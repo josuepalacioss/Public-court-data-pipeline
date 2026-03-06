@@ -26,3 +26,6 @@ spark-warehouse/
 Thumbs.db
 .vscode/
 .idea/
+
+__pycache__/
+*.pyc
