@@ -20,7 +20,7 @@ spark-warehouse/
 .env.*
 
 # -----------------------------
-# OS / Editor files
+# OS / Editor filess
 # -----------------------------
 .DS_Store
 Thumbs.db
