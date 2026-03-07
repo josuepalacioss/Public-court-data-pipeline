@@ -69,7 +69,7 @@ def basic_summary(df: pd.DataFrame) -> dict:
         summary["jurisdictions"] = df["jurisdiction"].value_counts().to_dict()
 
     if "year" in df.columns:
-        years = df["year"].dropna()
+        years = pd.to_numeric(df["year"], errors="coerce").dropna()
         if not years.empty:
             summary["year_range"] = {
                 "min": int(years.min()),

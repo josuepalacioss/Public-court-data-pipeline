@@ -4,9 +4,7 @@ courtlistener:
     - "scotus"
     - "ca1"
     - "ca9"
-    - "dcd"
-    - "nysd"
-    - "cacd"
+    
   page_size: 100
   max_pages: 10
   date_after: "2020-01-01"

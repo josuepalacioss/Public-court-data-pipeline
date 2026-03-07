@@ -78,6 +78,8 @@ class StorageHandler:
             if decision_date:
                 decision_date = str(decision_date)[:10]
             year, month = self._extract_year_month(decision_date)
+            year = year if year is not None else 0
+            month = month if month is not None else 0
 
             court_info = rec.get("court", {})
             court_name = (
@@ -138,7 +140,7 @@ class StorageHandler:
         path = self.processed_dir / "parquet" / label
         if not path.exists():
             raise FileNotFoundError(f"No Parquet data found at {path}")
-        df = pd.read_parquet(path, engine="pyarrow")
+        df = pd.read_parquet(path, engine="pyarrow", dtype_backend="numpy_nullable")
         logger.info(f"Read {len(df)} rows from {path}")
         return df
 

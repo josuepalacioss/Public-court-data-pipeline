@@ -2,7 +2,13 @@
 cap_loader.py
 -----------------------------------------------------------------------------------
 Loads Harvard Caselaw Access Project (CAP) bulk JSON files.
-Georgia jurisdiction bulk data available at: https://case.law/bulk/download/
+Georgia bulk data downloaded from: https://static.case.law/ga/1.zip
+
+File structure after unzipping:
+    data/raw/cap/
+        json/           <- individual case JSON files (0001-01.json, etc.)
+        html/           <- HTML versions (not used)
+        metadata/       <- volume/reporter metadata
 
 Usage:
     loader = CAPLoader()
@@ -22,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class CAPLoader:
-    """Loader for Caselaw Access Project bulk JSONL files."""
+    """Loader for Caselaw Access Project bulk JSON files."""
 
     def __init__(self, config_path: str = "config/settings.yaml"):
         with open(config_path, "r") as f:
@@ -35,32 +41,39 @@ class CAPLoader:
         self.raw_dir = Path(self.config["storage"]["raw_dir"]) / "cap"
         self.raw_dir.mkdir(parents=True, exist_ok=True)
 
+        # JSON files are extracted to data/raw/cap/json/
+        self.json_dir = self.bulk_dir / "json"
+
     def load_bulk(self, limit: int = None) -> list:
         """
-        Read all JSONL files in the bulk data directory.
+        Read all JSON files in the bulk data json/ directory.
+        Each file contains one case with metadata and opinions.
 
         Args:
             limit: Max records to return (None = all).
-                   Use limit for M2 proof-of-concept testing.
 
         Returns:
             List of case metadata dicts.
         """
-        jsonl_files = sorted(self.bulk_dir.glob("**/*.jsonl"))
-
-        if not jsonl_files:
+        if not self.json_dir.exists():
             logger.warning(
-                f"No .jsonl files found in {self.bulk_dir}. "
-                "Download Georgia bulk data from: "
-                "https://case.law/bulk/download/"
+                f"No json/ directory found at {self.json_dir}. "
+                "Download and unzip Georgia bulk data from: "
+                "https://static.case.law/ga/1.zip"
             )
             return []
 
-        logger.info(f"Found {len(jsonl_files)} JSONL files in {self.bulk_dir}")
+        json_files = sorted(self.json_dir.glob("*.json"))
+
+        if not json_files:
+            logger.warning(f"No .json files found in {self.json_dir}")
+            return []
+
+        logger.info(f"Found {len(json_files)} JSON files in {self.json_dir}")
 
         records = []
-        for fpath in jsonl_files:
-            for rec in self._read_jsonl(fpath):
+        for fpath in json_files:
+            for rec in self._read_case_json(fpath):
                 records.append(self._tag_record(rec))
                 if limit and len(records) >= limit:
                     logger.info(f"Reached limit of {limit} records")
@@ -83,24 +96,38 @@ class CAPLoader:
 
     def check_bulk_files(self) -> dict:
         """Check what bulk files are available."""
-        jsonl_files = list(self.bulk_dir.glob("**/*.jsonl"))
+        json_files = list(self.json_dir.glob("*.json")) if self.json_dir.exists() else []
         return {
             "bulk_dir": str(self.bulk_dir),
-            "files_found": len(jsonl_files),
-            "file_list": [str(f) for f in jsonl_files[:10]],
-            "status": "ready" if jsonl_files else "missing - download required",
+            "json_dir": str(self.json_dir),
+            "files_found": len(json_files),
+            "file_list": [str(f) for f in json_files[:10]],
+            "status": "ready" if json_files else "missing - download and unzip required",
         }
 
-    def _read_jsonl(self, path: Path) -> Iterator[dict]:
-        """Yield one dict per line from a JSONL file."""
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        yield json.loads(line)
-                    except json.JSONDecodeError as e:
-                        logger.warning(f"Skipping malformed line in {path}: {e}")
+    def _read_case_json(self, path: Path) -> Iterator[dict]:
+        """
+        Read a CAP case JSON file.
+        Each file may contain a single case object or a list of cases.
+        """
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Some files are a list of cases, others are a single case object
+            if isinstance(data, list):
+                for case in data:
+                    yield case
+            elif isinstance(data, dict):
+                # Could be a single case or a wrapper with 'cases' key
+                if "cases" in data:
+                    for case in data["cases"]:
+                        yield case
+                else:
+                    yield data
+
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Skipping {path.name}: {e}")
 
     def _tag_record(self, record: dict) -> dict:
         """Add pipeline metadata tags to a raw CAP record."""

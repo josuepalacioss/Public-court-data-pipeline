@@ -2,7 +2,7 @@
 courtlistener_client.py
 -----------------------------------------------------------------------------
 Fetches metadata from the CourtListener REST API v4.
-Handles authentication, rate, and raw JSON.
+Handles authentication, pagination, retries, and raw JSON persistence.
 """
 
 import os
@@ -11,6 +11,7 @@ import time
 import logging
 from datetime import datetime
 from pathlib import Path
+
 import requests
 import yaml
 from dotenv import load_dotenv
@@ -61,7 +62,7 @@ class CourtListenerClient:
             return {"status": "error", "message": str(e)}
 
     def fetch_opinions(self, court: str = None, page_limit: int = None) -> list:
-        """Fetch opinion metadata for one or all configured courts."""
+        """Fetch cluster metadata for one or all configured courts."""
         courts = [court] if court else self.cl_config["courts"]
         page_limit = page_limit or self.cl_config["max_pages"]
 
@@ -87,15 +88,13 @@ class CourtListenerClient:
         return out_path
 
     def _paginate_opinions(self, court: str, page_limit: int) -> list:
-        """Paginate through the opinions endpoint for a single court."""
-        url = f"{self.cl_config['base_url']}/opinions/"
+        """Paginate through the clusters endpoint for a single court."""
+        url = f"{self.cl_config['base_url']}/clusters/"
         params = {
             "format": "json",
-            "court": court,
-            "page_size": self.cl_config["page_size"],
-            "date_created__gte": self.cl_config["date_after"],
-            "date_created__lte": self.cl_config["date_before"],
-            "ordering": "-date_created",
+            "docket__court": court,
+            "page_size": 20,
+            "order_by": "id",
         }
 
         records = []
@@ -119,8 +118,16 @@ class CourtListenerClient:
         return records
 
     def _get(self, url: str, params: dict = None) -> dict:
-        """Execute a GET request with basic error handling."""
-        resp = self.session.get(url, params=params, timeout=30)
+        """Execute a GET request with retry logic for timeouts."""
+        for attempt in range(3):
+            try:
+                resp = self.session.get(url, params=params, timeout=60)
+                break
+            except requests.exceptions.ReadTimeout:
+                if attempt == 2:
+                    raise
+                logger.warning(f"Timeout on attempt {attempt + 1}, retrying in 10s...")
+                time.sleep(10)
 
         if resp.status_code == 401:
             raise PermissionError(
