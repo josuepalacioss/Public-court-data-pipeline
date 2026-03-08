@@ -152,11 +152,11 @@ python main.py --mode verify
 ### Current Status
 
 **Working:**
-- CourtListener REST API ingestion — 600 records across `scotus`, `ca1`, `ca9` (2020–2024)
-- CAP Georgia bulk ingestion — 93 state court records from Volume 1
-- Schema normalization — both sources unified into a shared 10-column schema
+- CourtListener REST API ingestion - 600 records across `scotus`, `ca1`, `ca9` (2020–2024)
+- CAP Georgia bulk ingestion - 93 state court records from Volume 1
+- Schema normalization - both sources mapped to a shared 10 column schema
 - Storage — partitioned Parquet, flat CSV, and SQLite all persisting correctly
-- Verification — `--mode verify` confirms 693 total rows read back from Parquet
+- Verification - `--mode verify` confirms 693 total rows read back from Parquet
 
 **In progress / planned for M3:**
 - Distributed query execution via PySpark / Spark SQL
