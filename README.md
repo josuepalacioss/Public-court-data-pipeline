@@ -90,3 +90,75 @@ Dataset Source
 Harvard's Caselaw Access Project: https://case.law/caselaw/?reporter=ga
 
 CourtListener: https://www.courtlistener.com/help/api/
+
+
+---
+
+## M2 Update — Pipeline Implementation
+
+### Setup Instructions
+
+**1. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+**2. Environment setup**
+
+Create a `.env` file in the project root by copying the provided template:
+
+```bash
+cp config/.env.example .env
+```
+
+Then open `.env` and fill in your credentials:
+
+```
+COURTLISTENER_API_TOKEN=your_token_here
+```
+
+A free CourtListener API token can be obtained by registering at:
+https://www.courtlistener.com/register/
+
+No API key is required for CAP bulk data. Download the Georgia Volume 1 zip from
+https://static.case.law/ga/1.zip and unzip it so that the `json/` folder is located at:
+
+```
+data/raw/cap/json/
+```
+
+**3. How to run**
+
+```bash
+# Test API connection only
+python main.py --mode test
+
+# Ingest CourtListener federal court records
+python main.py --mode cl
+
+# Ingest CAP Georgia bulk records
+python main.py --mode cap
+
+# Run both sources in sequence
+python main.py --mode full
+
+# Verify all stored data reads back correctly
+python main.py --mode verify
+```
+
+---
+
+### Current Status
+
+**Working:**
+- CourtListener REST API ingestion — 600 records across `scotus`, `ca1`, `ca9` (2020–2024)
+- CAP Georgia bulk ingestion — 93 state court records from Volume 1
+- Schema normalization — both sources unified into a shared 10-column schema
+- Storage — partitioned Parquet, flat CSV, and SQLite all persisting correctly
+- Verification — `--mode verify` confirms 693 total rows read back from Parquet
+
+**In progress / planned for M3:**
+- Distributed query execution via PySpark / Spark SQL
+- MapReduce aggregations by court, jurisdiction, and year
+- Completeness statistics and case volume trend analysis
