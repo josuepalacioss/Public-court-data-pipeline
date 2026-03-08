@@ -147,7 +147,7 @@ python main.py --mode full
 python main.py --mode verify
 ```
 
----
+-------------------------------
 
 ### Current Status
 
