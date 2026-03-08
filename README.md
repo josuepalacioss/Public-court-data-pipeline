@@ -17,6 +17,7 @@ to support legal research and analysis of judicial activity using large public d
 
 
 Problem Statement
+
 Public court data exists on a large scale but is difficult to analyze efficiently due to the sheer
 volume, heterogeneity, and different access constraints. Federal and state court datasets are
 published by different organizations, through different access methods. The ones tackled here
