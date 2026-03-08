@@ -6,6 +6,7 @@
 Project Overview
 -------------------------------
 Domain: Public court data analytics
+
 This project focuses on processing the structured metadata contained within court cases
 and legal documents. These public court datasets are readily available through APIs and
 bulk archives, but they are often fragmented across institutions. By ingesting and analyzing
