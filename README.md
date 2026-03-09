@@ -162,3 +162,7 @@ python main.py --mode verify
 - Distributed query execution via PySpark / Spark SQL
 - MapReduce aggregations by court, jurisdiction, and year
 - Completeness statistics and case volume trend analysis
+
+## AI Assistance
+Claude was used to help understand pipeline architecture 
+and explain code behavior during development of this project.
