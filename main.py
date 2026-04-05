@@ -22,6 +22,7 @@ from src.ingestion.courtlistener_client import CourtListenerClient
 from src.ingestion.cap_loader import CAPLoader
 from src.storage.db_handler import StorageHandler
 from src.processing.normalizer import validate_schema, basic_summary
+from src.processing.spark_analyzer import SparkAnalyzer
 import yaml
 
 
@@ -77,7 +78,7 @@ def run_cap(storage: StorageHandler):
     """Load CAP bulk data and persist it."""
     print("\n── CAP bulk ingestion ──")
     loader = CAPLoader()
-    records = loader.load_bulk(limit=1000)
+    records = loader.load_bulk()
 
     if not records:
         print("  No CAP records found.")
@@ -116,7 +117,7 @@ def main():
     parser = argparse.ArgumentParser(description="Court Data Pipeline - M2")
     parser.add_argument(
         "--mode",
-        choices=["test", "cl", "cap", "full", "verify"],
+        choices=["test", "cl", "cap", "full", "verify", "spark"],
         default="test",
         help="test=connection check, cl=CourtListener, cap=CAP, full=both, verify=read stored data"
     )
@@ -140,6 +141,9 @@ def main():
         run_cap(storage)
     elif args.mode == "verify":
         run_verify(storage)
+    elif args.mode == "spark":
+        analyzer = SparkAnalyzer(config_path=args.config)
+        analyzer.run_all()
 
     logger.info("Pipeline complete")
 

@@ -46,8 +46,8 @@ class CAPLoader:
 
     def load_bulk(self, limit: int = None) -> list:
         """
-        Read all JSON files in the bulk data json/ directory.
-        Each file contains one case with metadata and opinions.
+        Read all JSON files across all volume directories.
+        Scans the primary json/ directory plus all vol{N}/json/ subdirectories.
 
         Args:
             limit: Max records to return (None = all).
@@ -55,29 +55,37 @@ class CAPLoader:
         Returns:
             List of case metadata dicts.
         """
-        if not self.json_dir.exists():
+        # Collect all json directories — primary + volume subdirectories
+        json_dirs = []
+
+        if self.json_dir.exists():
+            json_dirs.append(self.json_dir)
+
+        for vol_dir in sorted(self.bulk_dir.glob("vol*/json")):
+            if vol_dir.is_dir():
+                json_dirs.append(vol_dir)
+
+        if not json_dirs:
             logger.warning(
-                f"No json/ directory found at {self.json_dir}. "
+                f"No json/ directories found under {self.bulk_dir}. "
                 "Download and unzip Georgia bulk data from: "
-                "https://static.case.law/ga/1.zip"
+                "https://static.case.law/bulk/download/"
             )
             return []
 
-        json_files = sorted(self.json_dir.glob("*.json"))
-
-        if not json_files:
-            logger.warning(f"No .json files found in {self.json_dir}")
-            return []
-
-        logger.info(f"Found {len(json_files)} JSON files in {self.json_dir}")
+        logger.info(f"Found {len(json_dirs)} volume directories to scan")
 
         records = []
-        for fpath in json_files:
-            for rec in self._read_case_json(fpath):
-                records.append(self._tag_record(rec))
-                if limit and len(records) >= limit:
-                    logger.info(f"Reached limit of {limit} records")
-                    return records
+        for json_dir in json_dirs:
+            json_files = sorted(json_dir.glob("*.json"))
+            logger.info(f"  {json_dir}: {len(json_files)} files")
+
+            for fpath in json_files:
+                for rec in self._read_case_json(fpath):
+                    records.append(self._tag_record(rec))
+                    if limit and len(records) >= limit:
+                        logger.info(f"Reached limit of {limit} records")
+                        return records
 
         logger.info(f"Loaded {len(records)} total CAP records")
         return records

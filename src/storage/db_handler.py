@@ -158,11 +158,16 @@ class StorageHandler:
 
     @staticmethod
     def _extract_year_month(date_str: str):
-        """Extract (year, month) from an ISO date string."""
+        """Extract (year, month) from an ISO date string.
+        Handles full dates (YYYY-MM-DD) and partial dates (YYYY-MM or YYYY).
+        """
         if not date_str:
             return None, None
         try:
-            dt = datetime.fromisoformat(date_str[:10])
-            return dt.year, dt.month
-        except ValueError:
+            date_str = str(date_str).strip()
+            parts = date_str.split("-")
+            year = int(parts[0])
+            month = int(parts[1]) if len(parts) >= 2 else 1
+            return year, month
+        except (ValueError, IndexError):
             return None, None
