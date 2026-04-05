@@ -1,17 +1,16 @@
 # Data Dictionary
 
-**Project:** Public Court Data Pipeline  
-**Course:** CS 4265 — Big Data Analytics  
+**Project:** Public Court Data Pipeline    
 **Author:** Josue Palacios  
-**Last Updated:** April 2026 (M3)
+
 
 ---
 
 ## Overview
 
-All ingested court records — regardless of source — are normalized into a unified
+All ingested court records are normalized into a unified
 10-column schema before storage. This schema is enforced at ingestion time by
-`StorageHandler` in `src/storage/db_handler.py` and persisted across three storage
+`StorageHandler` which is located in `src/storage/db_handler.py` and persists across three storage
 formats: partitioned Parquet, flat CSV, and SQLite.
 
 **Total records (M3):** 7,409  
@@ -32,7 +31,7 @@ formats: partitioned Parquet, flat CSV, and SQLite.
 | Description | Unique identifier for each court case record. Sourced directly from the originating API or bulk file. Cast to string to unify integer IDs from CourtListener with string IDs from CAP. |
 | Example (CourtListener) | `"1373795"` |
 | Example (CAP) | `"2394801"` |
-| Constraints | Non-null, non-empty. Uniqueness not enforced across sources — IDs are unique within each source but may overlap across sources. |
+| Constraints | Non-null, non-empty. Uniqueness not enforced across sources - IDs are unique within each source but may overlap across sources. |
 
 ---
 
@@ -43,7 +42,7 @@ formats: partitioned Parquet, flat CSV, and SQLite.
 | Nullable | No |
 | Source (CourtListener) | `_source_court` tag added during ingestion (e.g. `"scotus"`, `"ca1"`, `"ca9"`) |
 | Source (CAP) | `court.slug` or `court.name` from the case JSON |
-| Description | Name or identifier of the court that issued the case. CourtListener uses short slugs; CAP uses full court names. No normalization is applied between the two — the original identifier is preserved. |
+| Description | Name or identifier of the court that issued the case. CourtListener uses short slugs; CAP uses full court names. No normalization is applied between the two - the original identifier is preserved. |
 | Example (CourtListener) | `"scotus"`, `"ca1"`, `"ca9"` |
 | Example (CAP) | `"Supreme Court of Georgia"` |
 | Constraints | Non-null. Values are source-dependent and not cross-normalized. |
@@ -59,7 +58,7 @@ formats: partitioned Parquet, flat CSV, and SQLite.
 | Source (CAP) | Hardcoded as `"state"` for all CAP records |
 | Description | Indicates whether the case belongs to the federal or state court system. Assigned at ingestion time based on the data source rather than extracted from the record itself. |
 | Allowed values | `"federal"`, `"state"` |
-| Constraints | Non-null. Binary classification — all records belong to one of two jurisdictions. |
+| Constraints | Non-null. Binary classification - all records belong to one of two jurisdictions. |
 
 ---
 
@@ -98,7 +97,7 @@ formats: partitioned Parquet, flat CSV, and SQLite.
 | Nullable | Yes |
 | Source (CourtListener) | `case_name` field from the clusters endpoint |
 | Source (CAP) | `name` field from the case JSON |
-| Description | The full name of the case as provided by the source. No normalization or standardization is applied — the original case name is preserved verbatim. |
+| Description | The full name of the case as provided by the source. No normalization or standardization is applied - the original case name is preserved verbatim. |
 | Example (CourtListener) | `"Smith v. United States"` |
 | Example (CAP) | `"Luke Robinson, plaintiff in error, vs. The State of Georgia, defendant in error"` |
 | Constraints | May be null or empty string if the source record has no case name. |
@@ -127,7 +126,7 @@ formats: partitioned Parquet, flat CSV, and SQLite.
 | Source (CAP) | Hardcoded as `"cap"` |
 | Description | Identifies the originating data source for each record. Used as a partition column in the Parquet dataset, enabling source-specific queries and filtering without full dataset scans. |
 | Allowed values | `"courtlistener"`, `"cap"` |
-| Constraints | Non-null. Used as a Parquet partition column — all records must have a valid source value. |
+| Constraints | Non-null. Used as a Parquet partition column - all records must have a valid source value. |
 
 ---
 
