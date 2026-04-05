@@ -78,7 +78,7 @@ _Out of Scope_
 
 ---
 
-## M2 Update — Pipeline Implementation
+## M2 Update - Pipeline Implementation
 
 ### Setup Instructions
 
@@ -137,24 +137,23 @@ python main.py --mode verify
 - CourtListener REST API ingestion - 600 records across `scotus`, `ca1`, `ca9` (2020–2024)
 - CAP Georgia bulk ingestion - 93 state court records from Volume 1
 - Schema normalization - both sources mapped to a shared 10 column schema
-- Storage — partitioned Parquet, flat CSV, and SQLite all persisting correctly
+- Storage - partitioned Parquet, flat CSV, and SQLite all persisting correctly
 - Verification - `--mode verify` confirms total rows read back from Parquet
 
 ---
 
-## M3 Update — Complete Implementation
+## M3 Update - Complete Implementation
 
 ### What's New in M3
 
-- **PySpark analytics** — distributed MapReduce aggregations, completeness statistics,
+- **PySpark analytics** - distributed MapReduce aggregations, completeness statistics,
   case volume trends, and Spark SQL queries via `--mode spark`
-- **CAP data scaled** — expanded from 93 records (1 volume) to 6,809 records (55 volumes),
+- **CAP data scaled** - expanded from 93 records (1 volume) to 6,809 records (55 volumes),
   spanning Georgia Supreme Court cases from 1846 to 1876
-- **Multi-volume loader** — `cap_loader.py` now scans all `vol{N}/json/` subdirectories
-  automatically
-- **Year field fix** — CAP partial dates (`YYYY-MM`) now parse correctly
-- **Analytics outputs** — 10 CSV analytics files saved to `data/processed/analytics/`
-- **Total dataset** — 7,409 records (6,809 CAP state + 600 CourtListener federal)
+- **Multi-volume loader** - `cap_loader.py` now scans all subdirectories automatically
+- **Year field fix** - CAP partial dates (`YYYY-MM`) now parse correctly
+- **Analytics outputs** - 10 CSV analytics files saved to `data/processed/analytics/`
+- **Total dataset** - 7,409 records (6,809 CAP state + 600 CourtListener federal)
 
 ---
 
@@ -172,7 +171,6 @@ https://www.python.org/downloads/release/python-3110/
 Verify installation:
 ```bash
 py -3.11 --version
-# Expected: Python 3.11.x
 ```
 
 #### Java 17
@@ -182,7 +180,7 @@ Download and install Java 17 JDK from:
 https://www.oracle.com/java/technologies/downloads/#java17-windows
 ```
 
-Select the **x64 Installer** for Windows.
+Select the x64 Installer for Windows.
 
 Set `JAVA_HOME` to Java 17 for the current session:
 ```bash
@@ -193,18 +191,18 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.18"
 
 PySpark requires WinUtils to access the local filesystem on Windows.
 
-**Step 1** — Create the WinUtils directory:
+**Step 1** - Create the WinUtils directory:
 ```bash
 New-Item -ItemType Directory -Path "$HOME\winutils\bin" -Force
 ```
 
-**Step 2** — Download WinUtils and Hadoop DLL:
+**Step 2** - Download WinUtils and Hadoop DLL:
 ```bash
 Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/refs/heads/master/hadoop-3.3.5/bin/winutils.exe" -OutFile "$HOME\winutils\bin\winutils.exe"
 Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/refs/heads/master/hadoop-3.3.5/bin/hadoop.dll" -OutFile "$HOME\winutils\bin\hadoop.dll"
 ```
 
-**Step 3** — Set `HADOOP_HOME` for the current session:
+**Step 3** - Set `HADOOP_HOME` for the current session:
 ```bash
 $env:HADOOP_HOME = "$HOME\winutils"
 ```
@@ -240,15 +238,15 @@ COURTLISTENER_API_TOKEN=your_token_here
 
 Download Georgia volumes and unzip them into the `data/raw/cap/` directory.
 
-Volume 1 (original):
+Volumes:
 ```bash
-# Download from: https://static.case.law/ga/1.zip
+Download from: https://static.case.law/ga/1.zip
 # Unzip so that data/raw/cap/json/ contains the case JSON files
 ```
 
-Additional volumes (M3 — volumes 2 through 55):
+Invoke bulk volumes requests (volumes x through y):
 ```bash
-for ($i = 2; $i -le 55; $i++) {
+for ($i = 'x'; $i -le 'y'; $i++) {
     Invoke-WebRequest -Uri "https://static.case.law/ga/$i.zip" -OutFile "data/raw/cap/$i.zip"
     Expand-Archive -Path "data/raw/cap/$i.zip" -DestinationPath "data/raw/cap/vol$i" -Force
 }
@@ -260,16 +258,16 @@ data/raw/cap/
     json/           <- Volume 1 cases
     vol2/json/      <- Volume 2 cases
     vol3/json/      <- Volume 3 cases
-    ...
-    vol55/json/     <- Volume 55 cases
+    ...             ..............
+    volx/json/     <- Volume x cases
 ```
 
 ---
 
 ### M3 How to Run
 
-> **Important:** Use `py -3.11` instead of `python` for all commands in M3.
-> PySpark 3.5.3 requires Python 3.11 and will not work with Python 3.14+.
+> **Important:** Use `py -3.11` for all commands in M3.
+> PySpark 3.5.3 requires Python 3.11 and will unfortunatley not work with Python 3.14 and up.
 
 ```bash
 # Set environment variables (required once per terminal session)
@@ -300,53 +298,25 @@ py -3.11 main.py --mode spark
 ### M3 Current Status
 
 **Pipeline:**
-- End-to-end pipeline runs with single command sequence — no manual intervention required
-- CourtListener ingestion — 600 federal court records (scotus, ca1, ca9), 2014–2016
-- CAP bulk ingestion — 6,809 Georgia Supreme Court records across 55 volumes, 1846–1876
-- Total dataset — 7,409 records unified into a single 10-column schema
-- All three storage formats persisting correctly — Parquet, CSV, SQLite
+- End-to-end pipeline runs with single command sequence - no manual intervention required
+- CourtListener ingestion - 600 federal court records (scotus, ca1, ca9), 2014–2016
+- CAP bulk ingestion - 6,809 Georgia Supreme Court records across 55 volumes, 1846–1876
+- Total dataset - 7,409 records unified into a single 10-column schema
+- All three storage formats persisting correctly - Parquet, CSV, SQLite
 
 **Spark Analytics (`--mode spark`):**
 - Loads normalized Parquet into Spark DataFrame via pandas bridge
-- MapReduce aggregations — case counts by court, jurisdiction, source, year
-- Completeness statistics — 100% across all 10 schema fields on 9,795 records
-- Case volume trends — peak filing years, year range summary per source
-- Spark SQL queries — top courts, federal vs state coverage, cases per decade
+- MapReduce aggregations - case counts by court, jurisdiction, source, year
+- Completeness statistics - 100% across all 10 schema fields on 9,795 records
+- Case volume trends - peak filing years, year range summary per source
+- Spark SQL queries - top courts, federal vs state coverage, cases per decade
 - Analytics outputs saved to `data/processed/analytics/` as CSV files
 
 **Stack concepts demonstrated:**
-- Storage — partitioned Parquet by source/year/month
-- Syntax — JSON ingestion → Parquet + CSV + SQLite output
-- Data Models — unified schema enforced via Spark DataFrames
-- Processing — MapReduce batch aggregations via PySpark groupBy
-- Querying — Spark SQL over registered `court_metadata` temp view
+- Storage - partitioned Parquet by source/year/month
+- Syntax - JSON ingestion → Parquet + CSV + SQLite output
+- Data Models - unified schema enforced via Spark DataFrames
+- Processing - MapReduce batch aggregations via PySpark groupBy
+- Querying - Spark SQL over registered `court_metadata` temp view
 
----
 
-### Repository Structure
-
-```
-Public-court-data-pipeline/
-├── main.py                         # Pipeline entry point, all --mode options
-├── config/
-│   ├── settings.yaml               # Pipeline configuration
-│   └── .env.example                # Environment variable template
-├── src/
-│   ├── ingestion/
-│   │   ├── courtlistener_client.py # CourtListener REST API client
-│   │   └── cap_loader.py           # CAP multi-volume bulk loader
-│   ├── processing/
-│   │   ├── normalizer.py           # Schema validation and summary stats
-│   │   └── spark_analyzer.py       # PySpark analytics module (M3)
-│   └── storage/
-│       └── db_handler.py           # Normalization and storage handler
-├── data/
-│   ├── raw/
-│   │   ├── courtlistener/          # Raw CourtListener JSONL files
-│   │   └── cap/                    # CAP bulk JSON files (55 volumes)
-│   └── processed/
-│       ├── parquet/                # Partitioned Parquet dataset
-│       ├── analytics/              # Spark analytics CSV outputs
-│       └── court_metadata.db       # SQLite database
-└── requirements.txt
-```
