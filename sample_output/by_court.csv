@@ -1,0 +1,5 @@
+court,jurisdiction,case_count,avg_docs,years_active
+Supreme Court of Georgia,state,6809,1.0,31
+ca1,federal,200,1.0,3
+ca9,federal,200,1.0,3
+scotus,federal,200,1.0,3
