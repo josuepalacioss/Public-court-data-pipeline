@@ -175,23 +175,5 @@ irrelevant partitions entirely. Partitioning by `year` and `month` within each s
 supports time-range queries and trend analysis with predicate pushdown, significantly
 reducing I/O costs at scale.
 
----
 
-## Completeness Summary (M3)
 
-As computed by `SparkAnalyzer.run_completeness()` across 9,795 records:
-
-| Field | Completeness |
-|---|---|
-| case_id | 100% |
-| court | 100% |
-| jurisdiction | 100% |
-| filing_date | 100% |
-| decision_date | 100% |
-| case_name | 100% |
-| document_count | 100% |
-| source | 100% |
-| year | 100% |
-| month | 100% |
-
-All 10 fields are fully populated across both sources with zero null values.
