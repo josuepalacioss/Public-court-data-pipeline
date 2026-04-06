@@ -28,7 +28,7 @@ Sources → Ingestion → Normalization → Storage → Analytics
 
 ---
 
-## Stage 1 — CourtListener Ingestion
+## Stage 1 - CourtListener Ingestion
 
 **Module:** `src/ingestion/courtlistener_client.py`  
 **Class:** `CourtListenerClient`  
@@ -73,7 +73,7 @@ courtlistener:
 
 ---
 
-## Stage 2 — CAP Bulk Ingestion
+## Stage 2 - CAP Bulk Ingestion
 
 **Module:** `src/ingestion/cap_loader.py`  
 **Class:** `CAPLoader`  
@@ -120,7 +120,7 @@ caselaw_access_project:
 
 ---
 
-## Stage 3 — Normalization and Storage
+## Stage 3 - Normalization and Storage
 
 **Module:** `src/storage/db_handler.py`  
 **Class:** `StorageHandler`  
@@ -166,13 +166,13 @@ storage:
 ```
 
 ### Error handling
-- Schema validation run after normalization — missing required columns logged as warnings
+- Schema validation run after normalization - missing required columns logged as warnings
 - Parquet uses `overwrite_or_ignore` to allow clean reruns without data corruption
-- SQLite uses `append` mode — clear the database manually if a full reset is needed
+- SQLite uses `append` mode - clear the database manually if a full reset is needed
 
 ---
 
-## Stage 4 — Verification
+## Stage 4 - Verification
 
 **Module:** `main.py` → `run_verify()`  
 **Triggered by:** `--mode verify`
@@ -193,11 +193,11 @@ represented. Confirms that the storage layer is functioning correctly end-to-end
 - Raises `FileNotFoundError` with a clear message if no Parquet data exists yet
 
 ### M3 output
-7,409 rows read back successfully — cap: 6,809 + courtlistener: 600.
+7,409 rows read back successfully - cap: 6,809 + courtlistener: 600.
 
 ---
 
-## Stage 5 — Spark Analytics
+## Stage 5 - Spark Analytics
 
 **Module:** `src/processing/spark_analyzer.py`  
 **Class:** `SparkAnalyzer`  
@@ -209,7 +209,7 @@ distributed analytics including MapReduce aggregations, completeness statistics,
 volume trends, and Spark SQL queries. Results are saved as CSV files.
 
 ### Prerequisites
-- Python 3.11 (required — PySpark 3.5.3 is incompatible with Python 3.14)
+- Python 3.11 (required - PySpark 3.5.3 is incompatible with Python 3.14)
 - Java 17 (`JAVA_HOME` must point to JDK 17)
 - WinUtils (`HADOOP_HOME` must point to winutils directory on Windows)
 
@@ -266,7 +266,7 @@ Spark session configured programmatically in `_build_session()`:
 - Spark session always stopped in a `finally` block to prevent resource leaks
 
 ### M3 output
-7,409 records processed — 100% completeness across all 10 fields, all 10 analytics CSVs saved.
+7,409 records processed - 100% completeness across all 10 fields, all 10 analytics CSVs saved.
 
 ---
 

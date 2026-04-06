@@ -55,7 +55,7 @@ class CAPLoader:
         Returns:
             List of case metadata dicts.
         """
-        # Collect all json directories — primary + volume subdirectories
+        # Collect all json directories - primary + volume subdirectories
         json_dirs = []
 
         if self.json_dir.exists():

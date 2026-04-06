@@ -222,7 +222,7 @@ class SparkAnalyzer:
  
     def run_trends(self) -> dict:
         """
-        Case volume trend analysis — records per year, per source.
+        Case volume trend analysis - records per year, per source.
         Identifies peak filing years and year-over-year patterns.
         """
         logger.info("Running case volume trend analysis...")
@@ -283,7 +283,7 @@ class SparkAnalyzer:
             LIMIT 10
         """)
         results["top_courts"] = q1
-        print("\n  SQL Q1 — Top 10 most active courts:")
+        print("\n  SQL Q1 - Top 10 most active courts:")
         q1.show(truncate=False)
  
         # Q2: Federal vs state coverage comparison
@@ -300,7 +300,7 @@ class SparkAnalyzer:
             ORDER BY records DESC
         """)
         results["coverage_comparison"] = q2
-        print("\n  SQL Q2 — Federal vs state coverage:")
+        print("\n  SQL Q2 - Federal vs state coverage:")
         q2.show(truncate=False)
  
         # Q3: Records per decade
@@ -315,7 +315,7 @@ class SparkAnalyzer:
             ORDER BY decade, source
         """)
         results["by_decade"] = q3
-        print("\n  SQL Q3 — Cases per decade by source:")
+        print("\n  SQL Q3 - Cases per decade by source:")
         q3.show(20, truncate=False)
  
         return results
