@@ -1,12 +1,5 @@
 # Pipeline Documentation
 
-**Project:** Public Court Data Pipeline  
-**Course:** CS 4265 — Big Data Analytics  
-**Author:** Josue Palacios  
-**Last Updated:** April 2026 (M3)
-
----
-
 ## Overview
 
 The pipeline is a batch-oriented, multi-stage system that ingests public court metadata
