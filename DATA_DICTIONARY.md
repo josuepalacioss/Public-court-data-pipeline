@@ -1,10 +1,5 @@
 # Data Dictionary
 
-**Project:** Public Court Data Pipeline    
-**Author:** Josue Palacios  
-
-
----
 
 ## Overview
 
