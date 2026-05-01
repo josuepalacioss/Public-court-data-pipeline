@@ -93,8 +93,10 @@ class CourtListenerClient:
         params = {
             "format": "json",
             "docket__court": court,
-            "page_size": 20,
+            "page_size": self.cl_config.get("page_size", 100),
             "order_by": "id",
+            "date_filed__gte": self.cl_config.get("date_after", "2014-01-01"),
+            "date_filed__lte": self.cl_config.get("date_before", "2024-12-31"),
         }
 
         records = []

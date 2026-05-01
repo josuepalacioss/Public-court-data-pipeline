@@ -4,11 +4,12 @@ main.py
 Pipeline entry point and script.
 
 Usage:
-    python main.py --mode test      # Test API connection only
-    python main.py --mode cl        # CourtListener acquisition only
-    python main.py --mode cap       # CAP bulk loading only
-    python main.py --mode full      # Both sources
-    python main.py --mode verify    # Read back stored data
+    py -3.11 main.py --mode test      # Test API connection only
+    py -3.11 main.py --mode cl        # CourtListener acquisition only
+    py -3.11 main.py --mode cap       # CAP bulk loading only
+    py -3.11 main.py --mode full      # Both sources end-to-end
+    py -3.11 main.py --mode verify    # Read back stored data
+    py -3.11 main.py --mode spark     # Run distributed Spark analytics
 """
 
 import argparse
@@ -42,20 +43,20 @@ def setup_logging(config_path: str = "config/settings.yaml"):
 
 def run_test(storage: StorageHandler):
     """Test API connection and check storage status."""
-    print("\n── Testing CourtListener API connection ──")
+    print("\n--- Testing CourtListener API connection ---")
     client = CourtListenerClient()
     result = client.test_connection()
     for k, v in result.items():
         print(f"  {k}: {v}")
 
-    print("\n── Storage summary ──")
+    print("\n--- Storage summary ---")
     for k, v in storage.summary().items():
         print(f"  {k}: {v}")
 
 
 def run_courtlistener(storage: StorageHandler):
     """Acquire CourtListener data and persist it."""
-    print("\n── CourtListener ingestion ──")
+    print("\n--- CourtListener ingestion ---")
     client = CourtListenerClient()
 
     records = client.fetch_opinions()
@@ -76,7 +77,7 @@ def run_courtlistener(storage: StorageHandler):
 
 def run_cap(storage: StorageHandler):
     """Load CAP bulk data and persist it."""
-    print("\n── CAP bulk ingestion ──")
+    print("\n--- CAP bulk ingestion ---")
     loader = CAPLoader()
     records = loader.load_bulk()
 
@@ -102,7 +103,7 @@ def run_cap(storage: StorageHandler):
 
 def run_verify(storage: StorageHandler):
     """Read back stored data to confirm persistence."""
-    print("\n── Verifying stored data ──")
+    print("\n--- Verifying stored data ---")
     try:
         df = storage.read_parquet()
         print(f"  Parquet read-back successful: {len(df)} rows")
@@ -114,12 +115,12 @@ def run_verify(storage: StorageHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Court Data Pipeline - M2")
+    parser = argparse.ArgumentParser(description="Court Data Pipeline")
     parser.add_argument(
         "--mode",
         choices=["test", "cl", "cap", "full", "verify", "spark"],
         default="test",
-        help="test=connection check, cl=CourtListener, cap=CAP, full=both, verify=read stored data"
+        help="test=connection check, cl=CourtListener, cap=CAP, full=both, verify=read stored data, spark=distributed analytics"
     )
     parser.add_argument("--config", default="config/settings.yaml")
     args = parser.parse_args()

@@ -125,7 +125,7 @@ class SparkAnalyzer:
         Returns dict of Spark DataFrames keyed by aggregation name.
         """
         logger.info("Running MapReduce aggregations...")
-        print("\n── MapReduce Aggregations ──")
+        print("\n--- MapReduce Aggregations ---")
         results = {}
  
         # 1. Case counts by court (map by court, reduce by count)
@@ -191,7 +191,7 @@ class SparkAnalyzer:
         Returns dict with field-level completeness statistics.
         """
         logger.info("Running completeness statistics...")
-        print("\n── Completeness Statistics ──")
+        print("\n--- Completeness Statistics ---")
  
         total = self.df.count()
         schema_fields = [
@@ -226,7 +226,7 @@ class SparkAnalyzer:
         Identifies peak filing years and year-over-year patterns.
         """
         logger.info("Running case volume trend analysis...")
-        print("\n── Case Volume Trends ──")
+        print("\n--- Case Volume Trends ---")
         results = {}
  
         # Peak years by source
@@ -265,7 +265,7 @@ class SparkAnalyzer:
         Demonstrates distributed SQL execution over partitioned Parquet.
         """
         logger.info("Running Spark SQL queries...")
-        print("\n── Spark SQL Queries ──")
+        print("\n--- Spark SQL Queries ---")
         results = {}
  
         # Q1: Top 10 most active courts
@@ -326,7 +326,7 @@ class SparkAnalyzer:
         Uses pandas to write files, bypassing Hadoop native IO on Windows.
         """
         logger.info("Saving analytics outputs...")
-        print("\n── Saving Analytics Outputs ──")
+        print("\n--- Saving Analytics Outputs ---")
 
         all_results = {**aggregations, **completeness, **trends, **sql_results}
 

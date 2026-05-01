@@ -1,13 +1,7 @@
 """
 normalizer.py
 ------------------------------------------------------------
-Basic schema validation and summary statistics for M2.
-
-M3 planned additions:
-    - PySpark DataFrame transformations
-    - MapReduce aggregations by (court, jurisdiction, year)
-    - Completeness statistics per metadata field
-    - Case volume trend
+Schema validation and summary statistics.
 """
 
 import logging
@@ -52,7 +46,7 @@ def validate_schema(df: pd.DataFrame) -> dict:
 def basic_summary(df: pd.DataFrame) -> dict:
     """
     Compute lightweight analytics on a normalized DataFrame.
-    Full distributed analytics via Spark SQL planned for M3.
+    Full distributed analytics available via --mode spark (SparkAnalyzer).
     """
     summary = {
         "total_records": len(df),

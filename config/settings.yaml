@@ -1,13 +1,30 @@
 courtlistener:
   base_url: "https://www.courtlistener.com/api/rest/v4"
   courts:
+    # U.S. Supreme Court
     - "scotus"
+    # Federal Circuit Courts (all 13)
     - "ca1"
+    - "ca2"
+    - "ca3"
+    - "ca4"
+    - "ca5"
+    - "ca6"
+    - "ca7"
+    - "ca8"
     - "ca9"
-    
+    - "ca10"
+    - "ca11"
+    - "cadc"
+    - "cafc"
+    # High-volume federal district courts
+    - "dcd"
+    - "nysd"
+    - "cand"
+
   page_size: 100
-  max_pages: 10
-  date_after: "2020-01-01"
+  max_pages: 50
+  date_after: "2014-01-01"
   date_before: "2024-12-31"
 
 caselaw_access_project:

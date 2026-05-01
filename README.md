@@ -1,34 +1,33 @@
-# CS4265_Josue_Palacios_M3
+# Public Court Data Pipeline
+**Author:** Josue Palacios | [github.com/josuepalacioss/Public-court-data-pipeline](https://github.com/josuepalacioss/Public-court-data-pipeline)
 
-**Big Data Pipeline for Public Court Document Analytics**
-
+---
 
 ## Project Overview
 
 **Domain:** Public court data analytics
 
-This project focuses on processing the structured metadata contained within court cases
-and legal documents. These public court datasets are readily available through APIs and
-bulk archives, but they are often fragmented across institutions. By ingesting and analyzing
-the document metadata we can extract courts, dates, case types, document counts, and
-completeness indicators. This domain is motivated by the need for scalable infrastructure
-to support legal research and analysis of judicial activity using large public datasets.
+A batch-oriented Big Data pipeline that ingests, normalizes, and analyzes public court metadata from two heterogeneous sources:
+
+- **CourtListener REST API** - federal court opinions (SCOTUS, CA1, CA9), 2020–2024
+- **Harvard Caselaw Access Project (CAP)** - Georgia state court bulk archives, 1808–2018
+
+Both sources are normalized to a unified 10-column schema and persisted to partitioned Parquet, flat CSV, and SQLite, which enables analytics across different jurisdictions. By ingesting and analyzing the document metadata we can extract courts, dates, case types, document counts, and completeness indicators.This domain is motivated by the need for infrastructure to support legal research and analysis of judicial activity using large public datasets.
+
 
 
 ## Problem Statement
 
-Public court data exists on a large scale but is difficult to analyze efficiently due to the sheer
+Since public court data exists on a large scale but is difficult to analyze efficiently due to the sheer
 volume, heterogeneity, and different access constraints. Federal and state court datasets are
-published by different organizations, through different access methods. The ones tackled here
+published by different organizations. The ones tackled here
 include REST APIs provided by CourtListener and bulk archives provided by the Caselaw
-Access Project by Harvard Law School. As a result, answering basic questions will require
-great effort.
+Access Project by Harvard Law School.
 
 _This project aims to address the following questions:_
 
 - How does the volume of court cases and documents change over time across jurisdictions?
 - How do federal and state court datasets differ in coverage and completeness?
-- What trends exist in case counts, document counts, and court activity over time?
 - How complete are metadata fields across sources?
 
 _At scale, these questions introduce several challenges:_
@@ -73,250 +72,181 @@ _Out of Scope_
 
 ## Dataset Sources
 
-- Harvard's Caselaw Access Project: https://case.law/caselaw/?reporter=ga
-- CourtListener: https://www.courtlistener.com/help/api/
+- [CourtListener](https://www.courtlistener.com/help/api/) | Federal courts (SCOTUS, CA1, CA9), 2020-2024 | Free API token required
+- [Harvard CAP](https://case.law/bulk/download/) | Georgia state courts, 1808–2018 | Free bulk download, no key needed
 
----
 
-## M2 Update - Pipeline Implementation
+## Architecture
 
-### Setup Instructions
+![Pipeline Architecture](docs/architecture.png)
 
-**1. Install dependencies**
+
+## Tech Stack
+
+- **Python 3.11** - pipeline scripting and orchestration (PySpark requires ≤ 3.11)
+- **PySpark 3.5.3** - distributed Spark SQL execution and MapReduce aggregations
+- **Java JDK 17** - required PySpark runtime dependency
+- **pandas 3.0.1** - DataFrame-based normalization and analytics
+- **pyarrow 23.0.1** - Parquet read/write with partition and predicate pushdown support
+- **requests 2.32.5** - CourtListener REST API client with pagination and retry logic
+- **python-dotenv 1.2.2** - credential isolation via .env
+- **PyYAML 6.0.3** - configuration management via settings.yaml
+
+
+## Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/josuepalacioss/Public-court-data-pipeline.git
+cd Public-court-data-pipeline
+```
+
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**2. Environment setup**
-
-Create a `.env` file in the project root by copying the provided template:
+### 3. Configure credentials
 
 ```bash
 cp config/.env.example .env
 ```
 
-Then open `.env` and fill in your credentials:
+Edit `.env` and add your CourtListener API token:
 
 ```
 COURTLISTENER_API_TOKEN=your_token_here
 ```
 
-A free CourtListener API token can be obtained by registering at:
-https://www.courtlistener.com/register/
+Get a free token by registering at [courtlistener.com/register](https://www.courtlistener.com/register/).
 
-No API key is required for CAP bulk data. Download the Georgia Volume 1 zip from
-https://static.case.law/ga/1.zip and unzip it so that the `json/` folder is located at:
+### 4. Download CAP bulk data (for state court records)
 
-```
-data/raw/cap/json/
-```
-
-**3. How to run**
+Download the Georgia Volume 1 zip and unzip it so the JSON files land at `data/raw/cap/json/`:
 
 ```bash
-# Test API connection only
+# Download from:
+# https://static.case.law/ga/1.zip
+# Then unzip:
+unzip 1.zip -d data/raw/cap/
+```
+
+No API key is required for CAP bulk data.
+
+
+
+## Usage
+
+```bash
+# Test API connection and check storage status
 python main.py --mode test
 
-# Ingest CourtListener federal court records
+# Ingest CourtListener federal court records only
 python main.py --mode cl
 
-# Ingest CAP Georgia bulk records
+# Ingest CAP Georgia bulk records only
 python main.py --mode cap
 
-# Run both sources in sequence
+# Run both sources end-to-end
 python main.py --mode full
 
-# Verify all stored data reads back correctly
+# Verify all stored data reads back correctly from Parquet
 python main.py --mode verify
 ```
 
-### Current Status (M2)
+### Example output (--mode full)
 
-**Working:**
-- CourtListener REST API ingestion - 600 records across `scotus`, `ca1`, `ca9` (2020–2024)
-- CAP Georgia bulk ingestion - 93 state court records from Volume 1
-- Schema normalization - both sources mapped to a shared 10 column schema
-- Storage - partitioned Parquet, flat CSV, and SQLite all persisting correctly
-- Verification - `--mode verify` confirms total rows read back from Parquet
-
----
-
-## M3 Update - Complete Implementation
-
-### What's New in M3
-
-- **PySpark analytics** - distributed MapReduce aggregations, completeness statistics,
-  case volume trends, and Spark SQL queries via `--mode spark`
-- **CAP data scaled** - expanded from 93 records (1 volume) to 6,809 records (55 volumes),
-  spanning Georgia Supreme Court cases from 1846 to 1876
-- **Multi-volume loader** - `cap_loader.py` now scans all subdirectories automatically
-- **Year field fix** - CAP partial dates (`YYYY-MM`) now parse correctly
-- **Analytics outputs** - 10 CSV analytics files saved to `data/processed/analytics/`
-- **Total dataset** - 7,409 records (6,809 CAP state + 600 CourtListener federal)
-
----
-
-### M3 Prerequisites
-
-M3 requires Python 3.11 and Java 17 specifically due to PySpark compatibility requirements.
-
-#### Python 3.11
-
-Download and install Python 3.11 from:
 ```
-https://www.python.org/downloads/release/python-3110/
+--- CourtListener ingestion ---
+  Raw JSON saved: data/raw/courtlistener/opinions_20260429_120000.jsonl (600 records)
+  Schema valid: True
+  Row count: 600
+  Summary: {'total_records': 600, 'sources': {'courtlistener': 600}, 'jurisdictions': {'federal': 600}, ...}
+
+--- CAP bulk ingestion ---
+  Raw JSON saved: data/raw/cap/cap_georgia_20260429_120010.jsonl (93 records)
+  Schema valid: True
+  Row count: 93
+  Summary: {'total_records': 93, 'sources': {'cap': 93}, 'jurisdictions': {'state': 93}, ...}
 ```
 
-Verify installation:
-```bash
-py -3.11 --version
+
+## Output Description
+
+The pipeline produces three output formats in `data/processed/`:
+
+- **Parquet** (`data/processed/parquet/court_metadata/`) - partitioned by `source/year/month`, primary analytical target with predicate pushdown support
+- **CSV** (`data/processed/court_metadata_<timestamp>.csv`) - flat export for inspection and sharing
+- **SQLite** (`data/processed/court_metadata.db`) - SQL-queryable database, table: `court_metadata`
+
+### Unified Schema
+
+Each record contains 10 normalized fields enforced across both sources:
+
+- `case_id` *(string)* - unique identifier from source system
+- `court` *(string)* - court name or slug
+- `jurisdiction` *(string)* - `federal` or `state`
+- `filing_date` *(string, ISO)* - date record was filed or created
+- `decision_date` *(string, ISO)* - date of court decision, nullable
+- `case_name` *(string)* - name of the case
+- `document_count` *(int)* - number of opinions/documents in case
+- `source` *(string)* - `courtlistener` or `cap`
+- `year` *(int)* - extracted from filing_date, used as partition key
+- `month` *(int)* - extracted from filing_date, used as partition key
+
+
+## Repository Structure
+
+```
+.
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── config/
+│   └── settings.yaml
+├── src/
+│   ├── ingestion/
+│   │   ├── courtlistener_client.py
+│   │   └── cap_loader.py
+│   ├── processing/
+│   │   └── normalizer.py
+│   ├── storage/
+│   │   └── db_handler.py
+│   └── main.py
+├── data/
+│   ├── raw/         (gitignored)
+│   ├── processed/   (gitignored)
+│   └── sample/      (small fixture files for testing)
+└── docs/
+    ├── architecture.md
+    ├── data_dictionary.md
+    └── validation.md
 ```
 
-#### Java 17
+## Project Status
 
-Download and install Java 17 JDK from:
-```
-https://www.oracle.com/java/technologies/downloads/#java17-windows
-```
+**Complete:**
+- CourtListener REST API ingestion (3,400 records, 17 courts, 2014–2022)
+- CAP Georgia bulk ingestion (6,809 records, 55 volumes, 1846–1876)
+- Schema normalization - unified 10-column schema across both sources
+- Multi-format storage - partitioned Parquet, CSV, SQLite
+- Data quality validation - schema checks, null rates, record counts
+- Edge case handling - missing files, API errors, malformed records, rate limiting
+- Verification mode - Parquet read-back confirms 10,209 rows persisted correctly
 
-Select the x64 Installer for Windows.
+**Known Limitations:**
+- CAP data is scoped to Georgia Supreme Court only; Harvard CAP has 6.7 million cases across all U.S. jurisdictions available at case.law/bulk/download/
+- CourtListener ingestion is bounded by configured courts and date windows (confi
 
-Set `JAVA_HOME` to Java 17 for the current session:
-```bash
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.18"
-```
 
-#### WinUtils (Windows only)
 
-PySpark requires WinUtils to access the local filesystem on Windows.
 
-**Step 1** - Create the WinUtils directory:
-```bash
-New-Item -ItemType Directory -Path "$HOME\winutils\bin" -Force
-```
 
-**Step 2** - Download WinUtils and Hadoop DLL:
-```bash
-Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/refs/heads/master/hadoop-3.3.5/bin/winutils.exe" -OutFile "$HOME\winutils\bin\winutils.exe"
-Invoke-WebRequest -Uri "https://github.com/cdarlint/winutils/raw/refs/heads/master/hadoop-3.3.5/bin/hadoop.dll" -OutFile "$HOME\winutils\bin\hadoop.dll"
-```
 
-**Step 3** - Set `HADOOP_HOME` for the current session:
-```bash
-$env:HADOOP_HOME = "$HOME\winutils"
-```
 
-> **Note:** Set both `JAVA_HOME` and `HADOOP_HOME` at the start of each terminal session
-> before running `--mode spark`. The pipeline code sets `JAVA_HOME` programmatically,
-> but `HADOOP_HOME` must be set in the shell environment.
-
----
-
-### M3 Setup Instructions
-
-**1. Install dependencies using Python 3.11**
-
-```bash
-py -3.11 -m pip install -r requirements.txt
-```
-
-**2. Environment setup**
-
-Create a `.env` file in the project root:
-
-```bash
-cp config/.env.example .env
-```
-
-Add your CourtListener API token:
-```
-COURTLISTENER_API_TOKEN=your_token_here
-```
-
-**3. Download and prepare CAP bulk data**
-
-Download Georgia volumes and unzip them into the `data/raw/cap/` directory.
-
-Volumes:
-```bash
-Download from: https://static.case.law/ga/1.zip
-# Unzip so that data/raw/cap/json/ contains the case JSON files
-```
-
-Invoke bulk volumes requests (volumes x through y):
-```bash
-for ($i = 'x'; $i -le 'y'; $i++) {
-    Invoke-WebRequest -Uri "https://static.case.law/ga/$i.zip" -OutFile "data/raw/cap/$i.zip"
-    Expand-Archive -Path "data/raw/cap/$i.zip" -DestinationPath "data/raw/cap/vol$i" -Force
-}
-```
-
-Expected directory structure after download:
-```
-data/raw/cap/
-    json/           <- Volume 1 cases
-    vol2/json/      <- Volume 2 cases
-    vol3/json/      <- Volume 3 cases
-    ...             ..............
-    volx/json/     <- Volume x cases
-```
-
----
-
-### M3 How to Run
-
-> **Important:** Use `py -3.11` for all commands in M3.
-> PySpark 3.5.3 requires Python 3.11 and will unfortunatley not work with Python 3.14 and up.
-
-```bash
-# Set environment variables (required once per terminal session)
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.18"
-$env:HADOOP_HOME = "$HOME\winutils"
-
-# Test API connection
-py -3.11 main.py --mode test
-
-# Ingest CourtListener federal court records (600 records)
-py -3.11 main.py --mode cl
-
-# Ingest all CAP Georgia bulk records (6,809 records across 55 volumes)
-py -3.11 main.py --mode cap
-
-# Run both sources end-to-end (recommended)
-py -3.11 main.py --mode full
-
-# Verify stored data reads back correctly
-py -3.11 main.py --mode verify
-
-# Run distributed Spark analytics (MapReduce + Spark SQL)
-py -3.11 main.py --mode spark
-```
-
----
-
-### M3 Current Status
-
-**Pipeline:**
-- End-to-end pipeline runs with single command sequence - no manual intervention required
-- CourtListener ingestion - 600 federal court records (scotus, ca1, ca9), 2014–2016
-- CAP bulk ingestion - 6,809 Georgia Supreme Court records across 55 volumes, 1846–1876
-- Total dataset - 7,409 records unified into a single 10-column schema
-- All three storage formats persisting correctly - Parquet, CSV, SQLite
-
-**Spark Analytics (`--mode spark`):**
-- Loads normalized Parquet into Spark DataFrame via pandas bridge
-- MapReduce aggregations - case counts by court, jurisdiction, source, year
-- Completeness statistics - 100% across all 10 schema fields on 9,795 records
-- Case volume trends - peak filing years, year range summary per source
-- Spark SQL queries - top courts, federal vs state coverage, cases per decade
-- Analytics outputs saved to `data/processed/analytics/` as CSV files
-
-**Stack concepts demonstrated:**
-- Storage - partitioned Parquet by source/year/month
-- Syntax - JSON ingestion → Parquet + CSV + SQLite output
-- Data Models - unified schema enforced via Spark DataFrames
-- Processing - MapReduce batch aggregations via PySpark groupBy
-- Querying - Spark SQL over registered `court_metadata` temp view
 
 
