@@ -9,8 +9,8 @@
 
 A batch-oriented Big Data pipeline that ingests, normalizes, and analyzes public court metadata from two heterogeneous sources:
 
-- **CourtListener REST API** - federal court opinions (SCOTUS, CA1, CA9), 2020–2024
-- **Harvard Caselaw Access Project (CAP)** - Georgia state court bulk archives, 1808–2018
+- CourtListener REST API — federal court opinions (17 courts), 2014–2022
+- Harvard Caselaw Access Project (CAP) — Georgia Supreme Court bulk archives, 1846–1876
 
 Both sources are normalized to a unified 10-column schema and persisted to partitioned Parquet, flat CSV, and SQLite, which enables analytics across different jurisdictions. By ingesting and analyzing the document metadata we can extract courts, dates, case types, document counts, and completeness indicators.This domain is motivated by the need for infrastructure to support legal research and analysis of judicial activity using large public datasets.
 
@@ -42,7 +42,7 @@ _At scale, these questions introduce several challenges:_
 This project focuses on the design and implementation of a distributed, batch-oriented Big
 Data pipeline for analyzing structured metadata derived from public court documents.
 
-_In Scope_
+**In Scope**
 
 Batch ingestion of heterogeneous public court datasets:
 
@@ -62,7 +62,7 @@ Distributed query execution using Spark SQL with partitioned Parquet datasets.
 Local execution with a cloud-ready design that supports scaling via additional partitions
 and executors.
 
-_Out of Scope_
+**Out of Scope**
 
 - Parsing, indexing, or analyzing the contents of court case PDF documents.
 - Natural language processing, machine learning, or data mining.
@@ -72,8 +72,8 @@ _Out of Scope_
 
 ## Dataset Sources
 
-- [CourtListener](https://www.courtlistener.com/help/api/) | Federal courts (SCOTUS, CA1, CA9), 2020-2024 | Free API token required
-- [Harvard CAP](https://case.law/bulk/download/) | Georgia state courts, 1808–2018 | Free bulk download, no key needed
+- [CourtListener](https://www.courtlistener.com/help/api/) | Federal courts (SCOTUS, CA1–CA11, CADC, CAFC, DCD, NYSD, CAND), 2014–2022 | Free API token required
+- [Harvard CAP](https://case.law/bulk/download/) | Georgia Supreme Court, 1846–1876 | Free bulk download, no key needed
 
 
 ## Architecture
@@ -122,6 +122,10 @@ COURTLISTENER_API_TOKEN=your_token_here
 
 Get a free token by registering at [courtlistener.com/register](https://www.courtlistener.com/register/).
 
+> **Note:** CourtListener enforces rate limits at higher usage thresholds. 
+> The 3,400 federal court records in this project were ingested in a single 
+> session. Subsequent large runs may require waiting or upgraded API access.
+
 ### 4. Download CAP bulk data (for state court records)
 
 Download the Georgia Volume 1 zip and unzip it so the JSON files land at `data/raw/cap/json/`:
@@ -156,20 +160,22 @@ python main.py --mode full
 python main.py --mode verify
 ```
 
-### Example output (--mode full)
+### Example output (--mode verify)
 
 ```
---- CourtListener ingestion ---
-  Raw JSON saved: data/raw/courtlistener/opinions_20260429_120000.jsonl (600 records)
-  Schema valid: True
-  Row count: 600
-  Summary: {'total_records': 600, 'sources': {'courtlistener': 600}, 'jurisdictions': {'federal': 600}, ...}
+--- Verifying stored data ---
+2026-04-30 20:57:49,854 [INFO] src.storage.db_handler - Read 10209 rows from data\processed\parquet\court_metadata
+  Parquet read-back successful: 10209 rows
 
---- CAP bulk ingestion ---
-  Raw JSON saved: data/raw/cap/cap_georgia_20260429_120010.jsonl (93 records)
-  Schema valid: True
-  Row count: 93
-  Summary: {'total_records': 93, 'sources': {'cap': 93}, 'jurisdictions': {'state': 93}, ...}
+  First 5 records:
+   case_id                     court jurisdiction filing_date decision_date                                                                                                                                          case_name  document_count source  year month
+0  1373795  Supreme Court of Georgia        state     1846-11       1846-11                                                                    Luke Robinson, plaintiff in error, vs. The State of Georgia, defendant in error               1    cap  1846    11
+1  1373810  Supreme Court of Georgia        state     1846-11       1846-11  John S. Stephens et al., plaintiffs in error, vs. George W. Crawford, Governor of the State of Georgia, use of Thomas B. Ward, defendant in error               1    cap  1846    11
+2  1373741  Supreme Court of Georgia        state     1846-11       1846-11                                                                                       In the matter of John S. Stephens, former Sheriff of Baldwin               1    cap  1846    11
+3  1373779  Supreme Court of Georgia        state     1846-11       1846-11                                                                       Henry Badgett, plaintiff in error, vs. John H. Broughton, defendant in error               1    cap  1846    11
+4  1373850  Supreme Court of Georgia        state     1846-11       1846-11                                                         The Central Bank of Georgia, plaintiff in error, vs. William Whitfield, defendant in error               1    cap  1846    11
+
+  Summary: {'total_records': 10209, 'sources': {'cap': 6809, 'courtlistener': 3400}, 'jurisdictions': {'state': 6809, 'federal': 3400}, 'year_range': {'min': 1846, 'max': 2022}, 'courts_represented': 18}
 ```
 
 
@@ -240,7 +246,9 @@ Each record contains 10 normalized fields enforced across both sources:
 
 **Known Limitations:**
 - CAP data is scoped to Georgia Supreme Court only; Harvard CAP has 6.7 million cases across all U.S. jurisdictions available at case.law/bulk/download/
-- CourtListener ingestion is bounded by configured courts and date windows (confi
+- CourtListener ingestion is bounded by configured courts and date windows (configurable in settings.yaml)
+- CourtListener API enforces rate limits; further ingestion requires a registered account with sufficient API permissions. Free tier access will result in timeouts or request blocks after extended use.
+
 
 
 

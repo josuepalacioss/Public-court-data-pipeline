@@ -1,7 +1,9 @@
 """
 normalizer.py
 ------------------------------------------------------------
-Schema validation and summary statistics.
+Schema validation and summary statistics for the court data pipeline.
+Validates unified schema conformance and computes analytical summaries
+across CourtListener and CAP records.
 """
 
 import logging

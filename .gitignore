@@ -1,7 +1,8 @@
 # -----------------------------
 # Data (raw and processed)
 # -----------------------------
-data/
+data/raw/
+data/processed/
 *.json
 *.parquet
 *.csv

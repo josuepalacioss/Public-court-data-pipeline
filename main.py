@@ -1,7 +1,7 @@
 """
 main.py
 ----------------------------------------------------------------------
-Pipeline entry point and script.
+Pipeline entry point for the Public Court Data Pipeline
 
 Usage:
     py -3.11 main.py --mode test      # Test API connection only

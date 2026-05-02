@@ -8,8 +8,8 @@ All ingested court records are normalized into a unified
 `StorageHandler` which is located in `src/storage/db_handler.py` and persists across three storage
 formats: partitioned Parquet, flat CSV, and SQLite.
 
-**Total records (M3):** 7,409  
-**Sources:** CourtListener (federal) + Caselaw Access Project (state)  
+**Total records:** 10,209  
+**Sources:** CourtListener (3,400 federal) + Caselaw Access Project (6,809 state)  
 **Storage location:** `data/processed/parquet/court_metadata/`
 
 ---
