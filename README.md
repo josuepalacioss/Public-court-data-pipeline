@@ -9,8 +9,8 @@
 
 A batch-oriented Big Data pipeline that ingests, normalizes, and analyzes public court metadata from two heterogeneous sources:
 
-- CourtListener REST API — federal court opinions (17 courts), 2014–2022
-- Harvard Caselaw Access Project (CAP) — Georgia Supreme Court bulk archives, 1846–1876
+- CourtListener REST API - federal court opinions (17 courts), 2014–2022
+- Harvard Caselaw Access Project (CAP) - Georgia Supreme Court bulk archives, 1846–1876
 
 Both sources are normalized to a unified 10-column schema and persisted to partitioned Parquet, flat CSV, and SQLite, which enables analytics across different jurisdictions. By ingesting and analyzing the document metadata we can extract courts, dates, case types, document counts, and completeness indicators.This domain is motivated by the need for infrastructure to support legal research and analysis of judicial activity using large public datasets.
 
